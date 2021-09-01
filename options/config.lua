@@ -4794,7 +4794,6 @@ local function loadUnitOptions()
 				type = "group",
 				inline = true,
 				name = "Role",
-			--	width = "full",
 				hidden = function() return not ShadowUF.db.profile.advanced end,
 				args = {
 					tank = {
