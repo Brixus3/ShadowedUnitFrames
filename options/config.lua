@@ -4794,26 +4794,42 @@ local function loadUnitOptions()
 				type = "group",
 				inline = true,
 				name = "Role",
+<<<<<<< HEAD
+=======
+			--	width = "full",
+>>>>>>> lfdrole
 				hidden = function() return not ShadowUF.db.profile.advanced end,
 				args = {
 					tank = {
 						order = 1,
 						type = "toggle",
+<<<<<<< HEAD
 						name = "Tank",
+=======
+						name = L["TANK"],
+>>>>>>> lfdrole
 						hidden = hideAdvancedOption,
 						arg = "indicators.$parentparent.tank",
 					},
 					healer = {
 						order = 2,
 						type = "toggle",
+<<<<<<< HEAD
 						name = "Healer",
+=======
+						name = L["HEALER"],
+>>>>>>> lfdrole
 						hidden = hideAdvancedOption,
 						arg = "indicators.$parentparent.healer",
 					},
 					damage = {
 						order = 3,
 						type = "toggle",
+<<<<<<< HEAD
 						name = "Damage",
+=======
+						name = L["DAMAGER"],
+>>>>>>> lfdrole
 						hidden = hideAdvancedOption,
 						arg = "indicators.$parentparent.damage",
 					},
