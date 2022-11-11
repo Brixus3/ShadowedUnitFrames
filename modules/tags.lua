@@ -4,6 +4,8 @@ local L = ShadowUF.L
 
 ShadowUF.Tags = Tags
 
+local WoWWrath = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
+
 -- Map the numeric index to the string
 local numerics = {}
 for id, color in pairs(PowerBarColor) do
@@ -391,6 +393,10 @@ Druid.FlightForm = GetSpellInfo(33943)
 ShadowUF.Druid = Druid
 
 Tags.defaultTags = {
+	["rune:timer"] = [[function(unit, unitOwner, fontString)
+		local endTime = fontString.block.endTime
+		return endTime and string.format("%.1f", endTime - GetTime()) or nil
+	end]],
 	["totem:timer"] = [[function(unit, unitOwner, fontString)
 		local endTime = fontString.block.endTime
 		return endTime and string.format("%.1f", endTime - GetTime()) or nil
@@ -788,7 +794,18 @@ Tags.defaultTags = {
 			return ShadowUF.L["Offline"]
 		end
 	end]],
-	["cpoints"] = [[function(unit, unitOwner)
+	["cpoints"] = WoWWrath and [[function(unit, unitOwner)
+		if( UnitHasVehicleUI("player") and UnitHasVehiclePlayerFrameUI("player") ) then
+			local points = GetComboPoints("vehicle")
+			if( points == 0 ) then
+				points = GetComboPoints("vehicle", "vehicle")
+			end
+
+			return points
+		else
+			return UnitPower("player", Enum.PowerType.ComboPoints)
+		end
+	end]] or [[function(unit, unitOwner)
 		return UnitPower("player", Enum.PowerType.ComboPoints)
 	end]],
 	["smartlevel"] = [[function(unit, unitOwner)
@@ -982,6 +999,7 @@ Tags.defaultTags = {
 -- Default tag events
 Tags.defaultEvents = {
 	["totem:timer"]				= "SUF_TOTEM_TIMER",
+	["rune:timer"]				= "SUF_RUNE_TIMER",
 	["hp:color"]				= "UNIT_HEALTH UNIT_HEALTH_FREQUENT UNIT_MAXHEALTH",
 	["short:druidform"]			= "UNIT_AURA",
 	["druidform"]				= "UNIT_AURA",
@@ -1064,6 +1082,7 @@ Tags.defaultFrequents = {
 -- Default tag categories
 Tags.defaultCategories = {
 	["totem:timer"]				= "classtimer",
+	["rune:timer"]				= "classtimer",
 	["hp:color"]				= "health",
 	["smart:curmaxhp"]			= "health",
 	["smart:curmaxpp"]			= "health",
@@ -1143,6 +1162,7 @@ Tags.defaultCategories = {
 -- Default tag help
 Tags.defaultHelp = {
 	["totem:timer"]				= L["How many seconds a totem has left before disappearing."],
+	["rune:timer"]				= L["How many seconds before a rune recharges."],
 	["abs:incabsorb"]			= L["Absolute damage absorption value on the unit, if 10,000 damage will be absorbed, it will show 10,000."],
 	["incabsorb"]				= L["Shorten damage absorption, if 13,000 damage will e absorbed, it will show 13k."],
 	["incabsorb:name"]			= L["If the unit has a damage absorption shield on them, it will show the absolute absorb value, otherwise the units name."],
@@ -1224,6 +1244,7 @@ Tags.defaultHelp = {
 
 Tags.defaultNames = {
 	["totem:timer"]				= L["Totem Timer"],
+	["rune:timer"]				= L["Rune Timer"],
 	["abs:incabsorb"]			= L["Damage absorption (Absolute)"],
 	["incabsorb"]				= L["Damage absorption (Short)"],
 	["incabsorb:name"]			= L["Damage absorption/Name"],
@@ -1333,6 +1354,8 @@ Tags.eventType = {
 	["PARTY_LOOT_METHOD_CHANGED"] = "unitless",
 	["READY_CHECK"] = "unitless",
 	["READY_CHECK_FINISHED"] = "unitless",
+	["RUNE_POWER_UPDATE"] = "unitless",
+	["RUNE_TYPE_UPDATE"] = "unitless",
 	["UPDATE_FACTION"] = "unitless",
 }
 
@@ -1345,10 +1368,12 @@ Tags.unitBlacklist = {
 Tags.unitRestrictions = {
 	["pvp:time"] = "player",
 	["totem:timer"] = "player",
+	["rune:timer"] = "player"
 }
 
 Tags.anchorRestriction = {
 	["totem:timer"] = "$totemBar",
+	["rune:timer"] = "$runeBar"
 }
 
 -- Event scanner to automatically figure out what events a tag will need
@@ -1384,6 +1409,8 @@ local function loadAPIEvents()
 		["GetTotemInfo"]			= "PLAYER_TOTEM_UPDATE",
 		["GetXPExhaustion"]			= "UPDATE_EXHAUSTION",
 		["GetWatchedFactionInfo"]	= "UPDATE_FACTION",
+		["GetRuneCooldown"]			= "RUNE_POWER_UPDATE",
+		["GetRuneType"]				= "RUNE_TYPE_UPDATE",
 		["GetRaidTargetIndex"]		= "RAID_TARGET_UPDATE",
 		["GetComboPoints"]			= "UNIT_POWER_FREQUENT",
 		["GetNumSubgroupMembers"]	= "GROUP_ROSTER_UPDATE",
